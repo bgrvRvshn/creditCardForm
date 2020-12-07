@@ -7,6 +7,8 @@ import {
     CARD_MASTERCARD_PAYMENT_REGEXP, CARD_NUMBER_REPLACE_REGEXP,
     CARD_VISA_PAYMENT_REGEXP
 } from "./Constants";
+import {YearOptions} from "./components/YearOptions";
+import {MonthOptions} from "./components/MonthOptions";
 
 function App() {
     const [cardNumber, setCardNumber] = useState('');
@@ -14,16 +16,19 @@ function App() {
     const [cardCVV, setCardCVV] = useState('');
     const [cardMonth, setCardMonth] = useState('');
     const [cardYear, setCardYear] = useState('');
+
     const [cardNumberDirty, setCardNumberDirty] = useState(false);
     const [cardHolderDirty, setCardHolderDirty] = useState(false);
     const [cardCVVDirty, setCardCVVDirty] = useState(false);
     const [cardMonthDirty, setCardMonthDirty] = useState(false);
     const [cardYearDirty, setCardYearDirty] = useState(false);
+
     const [cardNumberError, setCardNumberError] = useState(false);
     const [cardHolderError, setCardHolderError] = useState(false);
     const [cardCVVError, setCardCVVError] = useState(false);
     const [cardMonthError, setCardMonthError] = useState(false);
     const [cardYearError, setCardYearError] = useState(false);
+
     const [formValid, setFormValid] = useState(false);
     const [cardType, setCardType] = useState('pay.png');
     const [codeForm, setCodeForm] = useState(true);
@@ -45,7 +50,7 @@ function App() {
         } else {
             setFormValid(true);
         }
-    }, [cardNumberError, cardHolderError, cardMonthError, cardYearError, cardCVVError])
+    }, [cardNumberError, cardHolderError, cardMonthError, cardYearError, cardCVVError]);
 
     const numberHandler = (e) => {
         const cardNumberTrim = e.target.value.replace(/[^0-9]/g, '');
@@ -160,36 +165,6 @@ function App() {
         setCodeForm(true);
     }
 
-    const years = [
-        '20',
-        '22',
-        '23',
-        '24',
-        '25',
-        '26',
-        '27',
-        '28',
-        '29',
-        '30',
-        '31',
-        '32',
-    ];
-
-    const months = [
-        '01',
-        '02',
-        '03',
-        '04',
-        '05',
-        '06',
-        '07',
-        '08',
-        '09',
-        '10',
-        '11',
-        '12',
-    ];
-
     return (
         <div className="container">
             <div className="wrap">
@@ -254,12 +229,8 @@ function App() {
                                         onClick={e => monthHandler(e)}
                                         value={cardMonth}
                                         required>
-                                    <option hidden value=''>Month</option>
-                                    {
-                                        months.map((month) => (
-                                            <option value={month} key={month.toString()}>{month}</option>
-                                        ))
-                                    }
+                                    <option hidden value='' key={0}>Month</option>
+                                    <MonthOptions months={12}/>
                                 </select>
                                 <select className={(cardYearDirty || cardYearError) ? 'error' : null}
                                         name="year"
@@ -268,11 +239,7 @@ function App() {
                                         value={cardYear}
                                         required>
                                     <option hidden value='' key={0}>Year</option>
-                                    {
-                                        years.map((year) => (
-                                            <option value={year} key={year.toString()}>{year}</option>
-                                        ))
-                                    }
+                                    <YearOptions years={12}/>
                                 </select>
                             </div>
                         </div>
