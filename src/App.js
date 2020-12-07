@@ -1,6 +1,12 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect} from 'react';
 import InputMask from 'react-input-mask';
 import './App.css';
+import {
+    CARD_CVV_REGEXP,
+    CARD_HOLDER_REGEXP,
+    CARD_MASTERCARD_PAYMENT_REGEXP, CARD_NUMBER_REPLACE_REGEXP,
+    CARD_VISA_PAYMENT_REGEXP
+} from "./Constants";
 
 function App() {
     const [cardNumber, setCardNumber] = useState('');
@@ -24,10 +30,10 @@ function App() {
     const [codeValue, setCodeValue] = useState('');
     const [codeDirty, setCodeDirty] = useState(false);
 
-    const outputCardNumber = useRef('#### #### #### ####');
-    const outputCardHolder = useRef('#### ####');
-    const outputCardMonth = useRef('MM');
-    const outputCardYear = useRef('YY');
+    const [outputCardNumber, setOutputCardNumber] = useState('#### #### #### ####');
+    const [outputCardHolder, setOutputCardHolder] = useState('#### ####');
+    const [outputCardMonth, setOutputCardMonth] = useState('MM');
+    const [outputCardYear, setOutputCardYear] = useState('YY');
 
     useEffect(() => {
         if (cardNumberError
@@ -43,22 +49,17 @@ function App() {
 
     const numberHandler = (e) => {
         const cardNumberTrim = e.target.value.replace(/[^0-9]/g, '');
-
-        const regex = /(?!(?<=[A-Z]))[^A-Z](?=[^A-Z\n]{4,})/gmi;
         const subst = `*`;
-        const result = cardNumberTrim.replace(regex, subst);
+        const result = cardNumberTrim.replace(CARD_NUMBER_REPLACE_REGEXP, subst);
 
         setCardNumber(e.target.value);
-        outputCardNumber.current = result;
+        setOutputCardNumber(result);
 
-        const visaRegExp = /^4[0-9]{12}(?:[0-9]{3})?$/;
-        const MCRegExp = /^(5[1-5][0-9]{14}|2(22[1-9][0-9]{12}|2[3-9][0-9]{13}|[3-6][0-9]{14}|7[0-1][0-9]{13}|720[0-9]{12}))$/;
-
-        if (visaRegExp.test(cardNumberTrim)) {
+        if (CARD_VISA_PAYMENT_REGEXP.test(cardNumberTrim)) {
             setCardNumberError(false);
             setCardNumberDirty(false);
             setCardType('visa.png');
-        } else if (MCRegExp.test(cardNumberTrim)) {
+        } else if (CARD_MASTERCARD_PAYMENT_REGEXP.test(cardNumberTrim)) {
             setCardNumberError(false);
             setCardNumberDirty(false);
             setCardType('mc.png');
@@ -69,10 +70,9 @@ function App() {
 
     const holderHandler = (e) => {
         setCardHolder(e.target.value);
-        outputCardHolder.current = e.target.value;
+        setOutputCardHolder(e.target.value);
 
-        const regExp = /^([А-ЯA-Z]|[А-ЯA-Z][\x27а-яa-z]{1,}|[А-ЯA-Z][\x27а-яa-z]{1,}\-([А-ЯA-Z][\x27а-яa-z]{1,}|(оглы)|(кызы)))\040[А-ЯA-Z][\x27а-яa-z]{1,}(\040[А-ЯA-Z][\x27а-яa-z]{1,})?$/;
-        if (!regExp.test(e.target.value)) {
+        if (!CARD_HOLDER_REGEXP.test(e.target.value)) {
             setCardHolderError(true);
         } else {
             setCardHolderError(false);
@@ -82,7 +82,7 @@ function App() {
 
     const monthHandler = (e) => {
         setCardMonth(e.target.value);
-        outputCardMonth.current = e.target.value;
+        setOutputCardMonth(e.target.value);
 
         if (e.target.value !== '') {
             setCardMonthError(false);
@@ -94,7 +94,7 @@ function App() {
 
     const yearHandler = (e) => {
         setCardYear(e.target.value);
-        outputCardYear.current = e.target.value;
+        setOutputCardYear(e.target.value);
 
         if (e.target.value !== '') {
             setCardYearError(false);
@@ -106,8 +106,8 @@ function App() {
 
     const cvvHandler = (e) => {
         setCardCVV(e.target.value);
-        const regExp = /^[0-9]{3,4}$/;
-        if (!regExp.test(e.target.value)) {
+
+        if (!CARD_CVV_REGEXP.test(e.target.value)) {
             setCardCVVError(true);
         } else {
             setCardCVVError(false);
@@ -145,8 +145,6 @@ function App() {
         });
 
         if (response.ok) {
-            const answer = await response.json();
-            console.log(answer);
             setCodeForm(false);
         } else {
             console.error("Ошибка HTTP: " + response.status);
@@ -162,6 +160,36 @@ function App() {
         setCodeForm(true);
     }
 
+    const years = [
+        '20',
+        '22',
+        '23',
+        '24',
+        '25',
+        '26',
+        '27',
+        '28',
+        '29',
+        '30',
+        '31',
+        '32',
+    ];
+
+    const months = [
+        '01',
+        '02',
+        '03',
+        '04',
+        '05',
+        '06',
+        '07',
+        '08',
+        '09',
+        '10',
+        '11',
+        '12',
+    ];
+
     return (
         <div className="container">
             <div className="wrap">
@@ -173,22 +201,22 @@ function App() {
                     </div>
                     <div className="__row code">
                         <div className="number">
-                            {outputCardNumber.current}
+                            {outputCardNumber}
                         </div>
                     </div>
                     <div className="__row data">
                         <div className="name">
                             <div className="title">Card Holder</div>
                             <div className="value">
-                                {outputCardHolder.current}
+                                {outputCardHolder}
                             </div>
                         </div>
                         <div className="date">
                             <div className="title">Expires</div>
                             <div className="value">
-                                {outputCardMonth.current}
+                                {outputCardMonth}
                                 /
-                                {outputCardYear.current}
+                                {outputCardYear}
                             </div>
                         </div>
                     </div>
@@ -227,18 +255,11 @@ function App() {
                                         value={cardMonth}
                                         required>
                                     <option hidden value=''>Month</option>
-                                    <option value="01">01</option>
-                                    <option value="02">02</option>
-                                    <option value="03">03</option>
-                                    <option value="04">04</option>
-                                    <option value="05">05</option>
-                                    <option value="06">06</option>
-                                    <option value="07">07</option>
-                                    <option value="08">08</option>
-                                    <option value="09">09</option>
-                                    <option value="10">10</option>
-                                    <option value="11">11</option>
-                                    <option value="12">12</option>
+                                    {
+                                        months.map((month) => (
+                                            <option value={month} key={month.toString()}>{month}</option>
+                                        ))
+                                    }
                                 </select>
                                 <select className={(cardYearDirty || cardYearError) ? 'error' : null}
                                         name="year"
@@ -246,19 +267,12 @@ function App() {
                                         onClick={e => yearHandler(e)}
                                         value={cardYear}
                                         required>
-                                    <option hidden value=''>Year</option>
-                                    <option value="20">20</option>
-                                    <option value="21">21</option>
-                                    <option value="22">22</option>
-                                    <option value="23">23</option>
-                                    <option value="24">24</option>
-                                    <option value="25">25</option>
-                                    <option value="26">26</option>
-                                    <option value="27">27</option>
-                                    <option value="28">28</option>
-                                    <option value="29">29</option>
-                                    <option value="30">30</option>
-                                    <option value="31">31</option>
+                                    <option hidden value='' key={0}>Year</option>
+                                    {
+                                        years.map((year) => (
+                                            <option value={year} key={year.toString()}>{year}</option>
+                                        ))
+                                    }
                                 </select>
                             </div>
                         </div>
